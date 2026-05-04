@@ -163,18 +163,33 @@ def get_students():
 def add_student():
     data = load()
     body = request.json
+    sid = body.get("studentId", "").strip()
     cred_id = body.get("credentialId", "").strip()
     device_id = (body.get("deviceId") or "").strip()
-    duplicate = next((s for s in data["students"] if s["credentialId"] == cred_id), None)
-    flagged = bool(cred_id) and duplicate is not None
+    
+    if not sid:
+        return jsonify({"error": "Student ID is required"}), 400
+
+    # 1. Check for duplicate Student ID
+    if any(s for s in data["students"] if s.get("studentId") == sid):
+        return jsonify({"error": f"Student ID {sid} is already registered. Contact admin if you need to re-register."}), 400
+
+    # 2. Check for duplicate Biometric (Credential ID)
+    if cred_id and any(s for s in data["students"] if s.get("credentialId") == cred_id):
+        return jsonify({"error": "This biometric is already linked to another account."}), 400
+
+    # 3. Check for duplicate Device ID
     device_owner = next((s for s in data["students"] if device_id and (s.get("deviceId") == device_id)), None)
-    device_taken = device_owner is not None
+    if device_owner:
+        return jsonify({"error": f"This device is already linked to {device_owner.get('name','')} ({device_owner.get('studentId','')}). One student per device is allowed."}), 400
+
     full_name = " ".join(filter(None,[
         body.get("firstName","").strip(),
         body.get("middleName","").strip(),
         body.get("lastName","").strip(),
         body.get("suffix","").strip()
     ]))
+    
     student = {
         "id": str(uuid.uuid4()),
         "firstName": body.get("firstName","").strip(),
@@ -182,25 +197,21 @@ def add_student():
         "lastName": body.get("lastName","").strip(),
         "suffix": body.get("suffix","").strip(),
         "name": full_name,
-        "studentId": body["studentId"],
+        "studentId": sid,
         "phone": body.get("phone",""),
         "course": body.get("course",""),
         "yearLevel": body.get("yearLevel",""),
         "section": body.get("section",""),
         "credentialId": cred_id,
-        "flagged": flagged,
-        "flagReason": f"Same device as {duplicate['name']} ({duplicate['studentId']})" if flagged else "",
+        "flagged": False,
+        "flagReason": "",
         "registeredAt": datetime.now().isoformat(),
         "fineBalance": 0,
         "fineHistory": [],
         "deviceId": device_id,
         "blocked": False
     }
-    if device_taken:
-        # Security policy: one student per device. Additional registrations are blocked from attendance.
-        student["flagged"] = True
-        student["blocked"] = True
-        student["flagReason"] = f"Device already linked to {device_owner.get('name','')} ({device_owner.get('studentId','')})"
+    
     data["students"].append(student)
     save(data)
     return jsonify(student), 201

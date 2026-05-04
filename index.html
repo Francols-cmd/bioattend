@@ -692,7 +692,11 @@
         ⚠️ <span>This phone number is already linked to another account. Proceeding will flag this registration.</span>
       </div>
 
-      <button class="btn btn-primary btn-full" style="margin-top:8px;padding:13px" onclick="doRegister()">
+      <div style="margin-top: 12px; padding: 10px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 11px; color: var(--muted); line-height: 1.4;">
+        <strong>Security Notice:</strong> Only one account per device is permitted. Your student ID and biometric will be locked to this phone. Contact an administrator if you need to re-register on a different device.
+      </div>
+
+      <button class="btn btn-primary btn-full" style="margin-top:12px;padding:13px" onclick="doRegister()">
         ☝️ &nbsp;Register Fingerprint
       </button>
     </div>
@@ -704,39 +708,7 @@
   <div class="container">
     <div class="page-header">
       <h1>Mark Attendance</h1>
-      <p>Login with your details, then use your registered biometric to sign in</p>
-    </div>
-
-    <div class="card">
-      <div class="section-label">Student Login</div>
-      <div class="field-row col-3" style="margin-bottom:14px">
-        <div class="field" style="margin-bottom:0">
-          <label>Course</label>
-          <select id="attCourse"><option>Loading…</option></select>
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label>Section</label>
-          <select id="attSection"><option>Loading…</option></select>
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label>Name</label>
-          <select id="attStudent"><option value="">Loading…</option></select>
-        </div>
-      </div>
-      <div class="field-row col-2" style="margin-bottom:12px">
-        <button class="btn btn-secondary btn-full" onclick="doStudentLogin()">Login</button>
-        <button class="btn btn-ghost btn-full" onclick="doStudentLogout()">Switch Student</button>
-      </div>
-      <div id="attLoginMsg" class="alert alert-warn" style="margin-top:10px"></div>
-      <hr class="divider" style="margin:18px 0">
-
-      <div class="att-hero">
-        <div class="att-icon-wrap">☝️</div>
-        <div style="font-size:18px;font-weight:700;letter-spacing:-0.5px;color:var(--text)">Scan to Sign-In</div>
-        <p style="color:var(--muted);font-size:13px;margin-top:6px">Place your registered finger on the sensor</p>
-      </div>
-      <button id="btnVerify" class="btn btn-success btn-full" style="padding:13px;font-size:14px" onclick="doAttendance()" disabled>Verify Identity</button>
-      <p id="attMsg" class="att-msg" style="text-align:center;color:var(--accent)"></p>
+      <p>Scan only when an activity/event is live</p>
     </div>
 
     <!-- Active Activity Card -->
@@ -817,6 +789,7 @@
         <button class="adm-tab active" onclick="admTab('students')">Students</button>
         <button class="adm-tab" onclick="admTab('studentList')">Student List</button>
         <button class="adm-tab" onclick="admTab('activities')">Activities</button>
+        <button class="adm-tab" onclick="admTab('matrix')">Matrix</button>
         <button class="adm-tab" onclick="admTab('courses')">Programs</button>
         <button class="adm-tab" onclick="admTab('sections')">Sections & Years</button>
         <button class="adm-tab" onclick="admTab('logs')">Logs</button>
@@ -837,12 +810,13 @@
                 <th>Program</th>
                 <th>Year</th>
                 <th>Section</th>
+                <th>Fines</th>
                 <th>Status</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="studentBody">
-              <tr><td colspan="7" class="empty">Loading…</td></tr>
+              <tr><td colspan="8" class="empty">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -906,6 +880,26 @@
               <div style="font-weight:500">Select an activity to take or view attendance</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── MATRIX PANEL ── -->
+      <div class="adm-panel" id="apMatrix" style="padding-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">Student × Event Matrix</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-ghost btn-sm" onclick="renderMatrix()">Refresh</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+          Click a cell to cycle: <strong>✓ Present</strong> → <strong>Excused</strong> → <strong>Clear</strong>.
+          <br>Absent (₱10) is applied automatically when an event is closed.
+        </div>
+        <div class="table-wrap" id="matrixWrap">
+          <table>
+            <thead><tr><th>Student</th><th>Loading…</th></tr></thead>
+            <tbody><tr><td class="empty" colspan="2">Loading…</td></tr></tbody>
+          </table>
         </div>
       </div>
 
@@ -1068,6 +1062,47 @@
   </div>
 </div>
 
+<!-- ═══ STUDENT FINES MODAL ═══ -->
+<div class="modal-backdrop" id="fineModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="fineModalTitle">Fines</span>
+      <button class="modal-close" onclick="closeModal('fineModal')">✕</button>
+    </div>
+    <div id="fineModalMeta" style="font-size:12px;color:var(--muted);margin-top:-10px;margin-bottom:14px"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Reason</th>
+            <th style="text-align:right">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="fineModalBody">
+          <tr><td colspan="3" class="empty">No fines yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <hr class="divider" style="margin:18px 0">
+    <div class="section-label">Record Payment</div>
+    <div class="field-row col-2" style="margin-bottom:12px">
+      <div class="field" style="margin-bottom:0">
+        <label>Amount (₱)</label>
+        <input id="payAmount" type="number" min="1" placeholder="10" style="font-family:'JetBrains Mono',monospace">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Note (optional)</label>
+        <input id="payNote" placeholder="e.g. Paid cash">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="submitPayment()">Save Payment</button>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('fineModal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════
    BioAttend ESSU — Enhanced with Activities & Student List
@@ -1091,6 +1126,20 @@ async function safeJson(res) {
   try { return JSON.parse(text); } catch { return null; }
 }
 
+/* ── DEVICE ID (security: one account per device) ── */
+function getDeviceId() {
+  try {
+    let id = localStorage.getItem('bioattendDeviceId');
+    if (!id) {
+      id = (crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2)));
+      localStorage.setItem('bioattendDeviceId', id);
+    }
+    return id;
+  } catch {
+    return '';
+  }
+}
+
 /* ── NAV TABS ── */
 function showTab(t) {
   document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
@@ -1108,6 +1157,7 @@ async function loadDropdowns() {
     const [courses, sections, yearLevels] = await Promise.all([safeJson(rC), safeJson(rS), safeJson(rY)]);
     const fill = (id, list) => {
       const e = document.getElementById(id);
+      if (!e) return;
       e.innerHTML = Array.isArray(list) && list.length
         ? list.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')
         : `<option value="">— none added yet —</option>`;
@@ -1115,8 +1165,6 @@ async function loadDropdowns() {
     fill('selCourse', courses);
     fill('selYear', yearLevels);
     fill('selSec', sections);
-    fill('attCourse', courses);
-    fill('attSection', sections);
   } catch(e) { console.error('loadDropdowns failed', e); }
 }
 
@@ -1156,12 +1204,17 @@ async function doRegister() {
       course: document.getElementById('selCourse').value,
       yearLevel: document.getElementById('selYear').value,
       section: document.getElementById('selSec').value,
-      credentialId: toBase64(cred.rawId) };
+      credentialId: toBase64(cred.rawId),
+      deviceId: getDeviceId()
+    };
     const res = await api.post('/api/students', payload);
     const data = await safeJson(res);
-    if (!res.ok) { alert('Error: ' + (data?.error || `HTTP ${res.status}`)); return; }
-    if (data.flagged) { alert(`⚠️ Registered with warning: ${data.flagReason || 'Duplicate device detected.'}`); }
-    else { alert('✅ Student registered successfully!'); }
+    if (!res.ok) { 
+      const errMsg = data?.error || `HTTP ${res.status}`;
+      alert('❌ Registration Denied\n\n' + errMsg); 
+      return; 
+    }
+    alert('✅ Student registered successfully!');
     const _r = await api.get('/api/students');
     _allStudents = await safeJson(_r) || [];
     ['fName','mName','lName','sId','phone'].forEach(id => document.getElementById(id).value = '');
@@ -1176,136 +1229,6 @@ async function doRegister() {
       e.message
     );
   }
-}
-
-/* ── STUDENT LOGIN (Attendance gate) ── */
-let _studentSession = null; // { studentId, course, section, name }
-
-function setAttLoginMsg(kind, text) {
-  const el = document.getElementById('attLoginMsg');
-  el.classList.remove('show', 'alert-warn', 'alert-success', 'alert-error');
-  el.classList.add(kind === 'success' ? 'alert-success' : kind === 'error' ? 'alert-error' : 'alert-warn');
-  el.textContent = text || '';
-  if (text) el.classList.add('show');
-}
-
-function syncLoginUI() {
-  const btn = document.getElementById('btnVerify');
-  const logged = !!(_studentSession && _studentSession.studentId);
-  btn.disabled = !logged;
-  const actBtn = document.querySelector('#activeActivityCard .btn-success');
-  if (actBtn) actBtn.disabled = !logged;
-  if (logged) setAttLoginMsg('success', `Logged in: ${_studentSession.name} (${_studentSession.course} · Sec ${_studentSession.section})`);
-  else setAttLoginMsg('warn', 'Please login first (Course, Section, Name).');
-}
-
-function persistStudentSession() {
-  try { localStorage.setItem('bioattendStudentSession', JSON.stringify(_studentSession)); } catch {}
-}
-function restoreStudentSession() {
-  try {
-    const raw = localStorage.getItem('bioattendStudentSession');
-    _studentSession = raw ? JSON.parse(raw) : null;
-  } catch { _studentSession = null; }
-}
-
-async function refreshAttendanceStudentOptions() {
-  const sel = document.getElementById('attStudent');
-  const course = document.getElementById('attCourse')?.value || '';
-  const section = document.getElementById('attSection')?.value || '';
-  let students = [];
-  try {
-    const r = await api.get('/api/students');
-    students = await safeJson(r) || [];
-  } catch {}
-  let list = students;
-  if (course) list = list.filter(s => (s.course || '') === course);
-  if (section) list = list.filter(s => (s.section || '') === section);
-  list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  sel.innerHTML = `<option value="">Select your name…</option>` + list.map(s =>
-    `<option value="${esc(s.studentId)}">${esc(s.name)} (${esc(s.studentId)})</option>`
-  ).join('');
-}
-
-async function doStudentLogin() {
-  const course = document.getElementById('attCourse')?.value || '';
-  const section = document.getElementById('attSection')?.value || '';
-  const studentId = document.getElementById('attStudent')?.value || '';
-  if (!course || !section || !studentId) {
-    setAttLoginMsg('warn', 'Select Course, Section, and your Name.');
-    syncLoginUI();
-    return;
-  }
-  let students = [];
-  try { const r = await api.get('/api/students'); students = await safeJson(r) || []; } catch {}
-  const s = students.find(x => (x.studentId || '') === studentId);
-  if (!s) {
-    setAttLoginMsg('error', 'Student not found. Ask your admin to register you.');
-    syncLoginUI();
-    return;
-  }
-  if ((s.course || '') !== course || (s.section || '') !== section) {
-    setAttLoginMsg('error', 'Course/Section does not match this student.');
-    syncLoginUI();
-    return;
-  }
-  _studentSession = { studentId: s.studentId, course: s.course || '', section: s.section || '', name: s.name || '' };
-  persistStudentSession();
-  syncLoginUI();
-}
-
-function doStudentLogout() {
-  _studentSession = null;
-  persistStudentSession();
-  syncLoginUI();
-}
-
-/* ── ATTENDANCE ── */
-async function doAttendance() {
-  if (!_studentSession || !_studentSession.studentId) {
-    setAttLoginMsg('warn', 'Please login first.');
-    syncLoginUI();
-    return;
-  }
-  let students;
-  try { const r = await api.get('/api/students'); students = await safeJson(r) || []; }
-  catch { alert('Cannot reach server.'); return; }
-  if (!students.length) { alert('No students registered yet.'); return; }
-  const target = students.find(s => s.studentId === _studentSession.studentId);
-  if (!target) { alert('Your account was not found.'); doStudentLogout(); return; }
-  if (!target.credentialId) { alert('You are not biometrically registered yet. Please register first.'); return; }
-  const allow = [{ id: fromBase64(target.credentialId), type: 'public-key' }];
-  try {
-    const cred = await navigator.credentials.get({ publicKey: {
-      challenge: new Uint8Array(32), allowCredentials: allow, userVerification: 'required' }});
-    const scanId = toBase64(cred.rawId);
-    const user = students.find(s => s.credentialId === scanId);
-    if (user) {
-      if (user.studentId !== _studentSession.studentId) {
-        const msg = document.getElementById('attMsg');
-        msg.textContent = '❌ Logged-in student does not match the scanned biometric.';
-        msg.style.color = 'var(--danger)';
-        return;
-      }
-      const now = new Date();
-      const res = await api.post('/api/logs', { studentId: user.studentId, name: user.name,
-        course: user.course || '', yearLevel: user.yearLevel || '', section: user.section || '',
-        time: now.toLocaleTimeString(), date: now.toISOString().slice(0, 10) });
-      const body = await safeJson(res);
-      const msg = document.getElementById('attMsg');
-      if (body?.already) {
-        msg.innerHTML = `⚠️ &nbsp;Already signed in today — <strong>${esc(user.name)}</strong>`;
-        msg.style.color = 'var(--warn)';
-      } else {
-        msg.innerHTML = `✅ &nbsp;Attendance recorded — <strong>${esc(user.name)}</strong>`;
-        msg.style.color = 'var(--success)';
-      }
-    } else {
-      const msg = document.getElementById('attMsg');
-      msg.textContent = '⚠️ Credential not matched.';
-      msg.style.color = 'var(--warn)';
-    }
-  } catch(e) { alert('Not recognized or cancelled.'); }
 }
 
 /* ── ADMIN LOGIN ── */
@@ -1345,6 +1268,7 @@ function admTab(t) {
   event.target.classList.add('active');
   if (t === 'studentList') renderStudentList();
   if (t === 'activities') loadActivities();
+  if (t === 'matrix') renderMatrix();
 }
 
 /* ── LOAD ADMIN DATA ── */
@@ -1423,7 +1347,7 @@ function renderStudents(students) {
   const q = (document.getElementById('studentSearch')?.value || '').toLowerCase();
   const list = _studentsCache.filter(s => !q || s.name.toLowerCase().includes(q) || s.studentId.toLowerCase().includes(q));
   const tbody = document.getElementById('studentBody');
-  if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty">No students found.</td></tr>`; return; }
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No students found.</td></tr>`; return; }
   tbody.innerHTML = list.map(s => `
     <tr id="srow-${s.id}">
       <td><input class="editable" value="${esc(s.studentId)}" onchange="patchStudent('${s.id}','studentId',this.value)" title="Edit ID"></td>
@@ -1436,10 +1360,181 @@ function renderStudents(students) {
       <td><span class="tag">${esc(s.course)}</span></td>
       <td style="color:var(--text2)">${esc(s.yearLevel)}</td>
       <td style="color:var(--text2)">${esc(s.section)}</td>
+      <td>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:120px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)">₱${Number(s.fineBalance||0).toFixed(0)}</span>
+          <button class="btn btn-ghost btn-sm" onclick="openFinesModal('${s.id}')" title="View fine history">View</button>
+        </div>
+      </td>
       <td>${s.flagged ? `<span class="badge badge-warn">Flagged</span>` : `<span class="badge badge-success">OK</span>`}</td>
       <td><button class="btn btn-danger btn-sm btn-icon" onclick="deleteStudent('${s.id}')" title="Remove">✕</button></td>
     </tr>
   `).join('');
+}
+
+function openFinesModal(studentUid) {
+  const s = _studentsCache.find(x => x.id === studentUid);
+  if (!s) return;
+  window.__fineModalStudentUid = studentUid;
+  const bal = Number(s.fineBalance || 0);
+  document.getElementById('fineModalTitle').textContent = `Fines — ${s.name}`;
+  document.getElementById('fineModalMeta').textContent = `${s.studentId} · ${s.course || '—'} · ${s.yearLevel || '—'} · Sec ${s.section || '—'}  ·  Balance: ₱${bal.toFixed(0)}`;
+  document.getElementById('payAmount').value = '';
+  document.getElementById('payNote').value = '';
+  const body = document.getElementById('fineModalBody');
+  const hist = Array.isArray(s.fineHistory) ? s.fineHistory : [];
+  if (!hist.length) {
+    body.innerHTML = `<tr><td colspan="3" class="empty">No fines yet.</td></tr>`;
+    openModal('fineModal');
+    return;
+  }
+  body.innerHTML = hist.map(h => {
+    const dt = (h.createdAt || '').slice(0, 19).replace('T', ' ');
+    const amt = Number(h.amount || 0);
+    return `
+      <tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">${esc(dt || '—')}</td>
+        <td style="color:var(--text2)">${esc(h.reason || '—')}</td>
+        <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--danger)">₱${amt.toFixed(0)}</td>
+      </tr>
+    `;
+  }).join('');
+  openModal('fineModal');
+}
+
+async function submitPayment() {
+  const uid = window.__fineModalStudentUid;
+  if (!uid) return;
+  const amount = Number(document.getElementById('payAmount').value);
+  const note = document.getElementById('payNote').value.trim();
+  if (!amount || amount <= 0) { alert('Enter a valid amount.'); return; }
+  try {
+    const res = await api.post(`/api/students/${uid}/payments`, { amount: Math.floor(amount), note });
+    const body = await safeJson(res);
+    if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+    const s = _studentsCache.find(x => x.id === uid);
+    if (s) {
+      s.fineBalance = body.fineBalance;
+      s.paymentHistory = [body.payment].concat(Array.isArray(s.paymentHistory) ? s.paymentHistory : []);
+    }
+    renderStudents();
+    openFinesModal(uid);
+    alert('✅ Payment recorded.');
+  } catch (e) {
+    alert('Failed to record payment: ' + e.message);
+  }
+}
+
+/* ── MATRIX ── */
+function cellStateFor(act, studentId) {
+  const rec = (act.attendance || []).find(r => r.studentId === studentId);
+  if (!rec) return { state: 'none' };
+  const st = rec.status || 'present';
+  return { state: st, rec };
+}
+
+function nextState(cur) {
+  // Admin matrix should NOT manually mark absent (fines are automatic).
+  // none -> present -> excused -> none
+  // absent -> excused (for excusing/refunding) -> present -> none
+  if (cur === 'absent') return 'excused';
+  if (cur === 'present') return 'excused';
+  if (cur === 'excused') return 'none';
+  return 'present';
+}
+
+async function setMatrixCell(activityId, student, newState) {
+  // newState: present|absent|excused|none
+  const act = _activitiesCache.find(a => a.id === activityId);
+  if (!act) return;
+  const sid = student.studentId;
+  try {
+    if (newState === 'none') {
+      const res = await api.delete(`/api/activities/${activityId}/attendance/${encodeURIComponent(sid)}`);
+      if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+      act.attendance = (act.attendance || []).filter(r => r.studentId !== sid);
+    } else {
+      const existing = (act.attendance || []).find(r => r.studentId === sid);
+      if (!existing) {
+        const res = await api.post(`/api/activities/${activityId}/attendance`, {
+          studentId: sid, name: student.name, course: student.course || '',
+          yearLevel: student.yearLevel || '', section: student.section || '',
+          status: newState, time: ''
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || res.status);
+        act.attendance = data.attendance;
+      } else {
+        const res = await api.put(`/api/activities/${activityId}/attendance/${encodeURIComponent(sid)}`, { status: newState });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data?.error || res.status);
+        existing.status = newState;
+      }
+    }
+    // refresh students so fine balances update after absent/excused edits
+    try {
+      const r = await api.get('/api/students');
+      const st = await safeJson(r) || [];
+      _studentsCache = st;
+      document.getElementById('statStudents').textContent = st.length;
+      document.getElementById('statDups').textContent = st.filter(s => s.flagged).length;
+    } catch {}
+  } catch (e) {
+    alert('Matrix update failed: ' + e.message);
+  }
+}
+
+function renderMatrix() {
+  const wrap = document.getElementById('matrixWrap');
+  if (!wrap) return;
+  const acts = (_activitiesCache || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || '')).slice(-8);
+  const students = (_studentsCache || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  if (!acts.length) {
+    wrap.innerHTML = `<div class="empty">No activities yet.</div>`;
+    return;
+  }
+  if (!students.length) {
+    wrap.innerHTML = `<div class="empty">No students yet.</div>`;
+    return;
+  }
+  const head = `
+    <thead>
+      <tr>
+        <th style="min-width:220px">Student</th>
+        ${acts.map(a => `<th style="min-width:140px">${esc(a.name || 'Event')}<div style="font-size:10px;color:var(--muted);margin-top:4px">${esc(a.date || '')}</div></th>`).join('')}
+      </tr>
+    </thead>
+  `;
+  const body = `
+    <tbody>
+      ${students.map(s => {
+        return `
+          <tr>
+            <td style="font-weight:600">
+              ${esc(s.name)}<div style="font-size:11px;color:var(--muted);font-weight:500;margin-top:2px">${esc(s.studentId)} · ${esc(s.course||'')} · Sec ${esc(s.section||'')}</div>
+            </td>
+            ${acts.map(a => {
+              const cs = cellStateFor(a, s.studentId);
+              const st = cs.state;
+              const label = st === 'present' ? '✓' : st === 'absent' ? '₱10' : st === 'excused' ? 'EX' : '';
+              const cls = st === 'present' ? 'badge-success' : st === 'absent' ? 'badge-danger' : st === 'excused' ? 'badge-purple' : 'badge-muted';
+              const title = st === 'present' ? 'Present' : st === 'absent' ? 'Absent (₱10)' : st === 'excused' ? 'Excused' : 'No record';
+              return `
+                <td>
+                  <button class="badge ${cls}" style="width:100%;justify-content:center;cursor:pointer"
+                    title="${title}"
+                    onclick="(async()=>{ const nxt='${nextState(st)}'; await setMatrixCell('${a.id}', ${JSON.stringify({studentId:s.studentId,name:s.name,course:s.course,yearLevel:s.yearLevel,section:s.section}).replace(/"/g,'&quot;')}, nxt); await loadActivities(); renderMatrix(); renderStudents(); })()">
+                    ${label || '—'}
+                  </button>
+                </td>
+              `;
+            }).join('')}
+          </tr>
+        `;
+      }).join('')}
+    </tbody>
+  `;
+  wrap.innerHTML = `<table>${head}${body}</table>`;
 }
 
 async function patchStudent(uid, field, value) {
@@ -1849,19 +1944,14 @@ async function loadActiveActivity() {
 /* ── STUDENT MARK ACTIVITY ATTENDANCE ── */
 async function doActivityAttendance() {
   if (!_activeActivityCache) return;
-  if (!_studentSession || !_studentSession.studentId) {
-    setAttLoginMsg('warn', 'Please login first.');
-    syncLoginUI();
-    return;
-  }
   let students;
   try { const r = await api.get('/api/students'); students = await safeJson(r) || []; }
   catch { alert('Cannot reach server.'); return; }
   if (!students.length) { alert('No students registered yet.'); return; }
-  const target = students.find(s => s.studentId === _studentSession.studentId);
-  if (!target) { alert('Your account was not found.'); doStudentLogout(); return; }
-  if (!target.credentialId) { alert('You are not biometrically registered yet. Please register first.'); return; }
-  const allow = [{ id: fromBase64(target.credentialId), type: 'public-key' }];
+  const allow = students
+    .filter(s => s.credentialId && !s.blocked)
+    .map(s => ({ id: fromBase64(s.credentialId), type: 'public-key' }));
+  if (!allow.length) { alert('No eligible registered biometrics found.'); return; }
   const msg = document.getElementById('actAttMsg');
   try {
     const cred = await navigator.credentials.get({ publicKey: {
@@ -1873,14 +1963,10 @@ async function doActivityAttendance() {
       msg.style.color = 'var(--warn)';
       return;
     }
-    if (user.studentId !== _studentSession.studentId) {
-      msg.textContent = '❌ Logged-in student does not match the scanned biometric.';
-      msg.style.color = 'var(--danger)';
-      return;
-    }
     const res = await api.post('/api/activities/active/attend', {
       studentId: user.studentId, name: user.name,
-      course: user.course || '', yearLevel: user.yearLevel || '', section: user.section || ''
+      course: user.course || '', yearLevel: user.yearLevel || '', section: user.section || '',
+      deviceId: getDeviceId()
     });
     const body = await safeJson(res);
     if (!res.ok) { msg.textContent = '❌ ' + (body?.error || 'Failed'); msg.style.color = 'var(--danger)'; return; }
@@ -1968,11 +2054,6 @@ async function saveAddedStudent() {
 window.onload = async () => {
   await loadDropdowns();
   await initPhoneCheck();
-  restoreStudentSession();
-  await refreshAttendanceStudentOptions();
-  document.getElementById('attCourse')?.addEventListener('change', refreshAttendanceStudentOptions);
-  document.getElementById('attSection')?.addEventListener('change', refreshAttendanceStudentOptions);
-  syncLoginUI();
   try {
     const _meRes = await api.get('/api/me');
     const me = await safeJson(_meRes);

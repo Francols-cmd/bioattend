@@ -692,7 +692,11 @@
         ⚠️ <span>This phone number is already linked to another account. Proceeding will flag this registration.</span>
       </div>
 
-      <button class="btn btn-primary btn-full" style="margin-top:8px;padding:13px" onclick="doRegister()">
+      <div style="margin-top: 12px; padding: 10px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 11px; color: var(--muted); line-height: 1.4;">
+        <strong>Security Notice:</strong> Only one account per device is permitted. Your student ID and biometric will be locked to this phone. Contact an administrator if you need to re-register on a different device.
+      </div>
+
+      <button class="btn btn-primary btn-full" style="margin-top:12px;padding:13px" onclick="doRegister()">
         ☝️ &nbsp;Register Fingerprint
       </button>
     </div>
@@ -1205,10 +1209,12 @@ async function doRegister() {
     };
     const res = await api.post('/api/students', payload);
     const data = await safeJson(res);
-    if (!res.ok) { alert('Error: ' + (data?.error || `HTTP ${res.status}`)); return; }
-    if (data.blocked) { alert(`❌ This device is already linked to another student.\n\n${data.flagReason || ''}`); }
-    else if (data.flagged) { alert(`⚠️ Registered with warning: ${data.flagReason || 'Duplicate device detected.'}`); }
-    else { alert('✅ Student registered successfully!'); }
+    if (!res.ok) { 
+      const errMsg = data?.error || `HTTP ${res.status}`;
+      alert('❌ Registration Denied\n\n' + errMsg); 
+      return; 
+    }
+    alert('✅ Student registered successfully!');
     const _r = await api.get('/api/students');
     _allStudents = await safeJson(_r) || [];
     ['fName','mName','lName','sId','phone'].forEach(id => document.getElementById(id).value = '');
