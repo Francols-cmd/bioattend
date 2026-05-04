@@ -1,0 +1,71 @@
+{
+  "students": [
+    {
+      "id": "e1004277-24b9-4c3b-bd39-65714575ef3f",
+      "firstName": "Ahron Vince",
+      "middleName": "Macapanas",
+      "lastName": "Franco",
+      "suffix": "",
+      "name": "Ahron Vince Macapanas Franco",
+      "studentId": "24-00348",
+      "phone": "",
+      "course": "BSCPE",
+      "yearLevel": "",
+      "section": "2",
+      "credentialId": "",
+      "flagged": false,
+      "flagReason": "",
+      "registeredAt": "2026-05-04T21:55:38.100363",
+      "fineBalance": 0,
+      "fineHistory": []
+    }
+  ],
+  "logs": [],
+  "courses": [
+    "BSCPE",
+    "BSABE"
+  ],
+  "sections": [
+    "1",
+    "2"
+  ],
+  "yearLevels": [
+    "1st Year",
+    "2nd Year",
+    "3rd Year",
+    "4th Year"
+  ],
+  "activities": [
+    {
+      "id": "1c1edd4f-b4eb-4d89-b3ad-d56ae8a01884",
+      "name": "College of Engineering Week",
+      "description": "",
+      "date": "2026-04-28",
+      "location": "Gymnasium",
+      "createdAt": "2026-04-28T20:01:15.029329",
+      "attendance": [
+        {
+          "studentId": "24-00348",
+          "name": "Ahron Vince Macapanas Franco",
+          "course": "BSCPE",
+          "yearLevel": "2nd Year",
+          "section": "1",
+          "status": "present",
+          "time": "08:17:54 PM",
+          "markedAt": "2026-04-28T20:17:54.011847"
+        },
+        {
+          "studentId": "24-00701",
+          "name": "Dean Gio S Pelicano",
+          "course": "BSCPE",
+          "yearLevel": "2nd Year",
+          "section": "1",
+          "status": "present",
+          "time": "02:09:58 PM",
+          "markedAt": "2026-05-04T14:09:58.948827"
+        }
+      ],
+      "active": false
+    }
+  ]
+}
