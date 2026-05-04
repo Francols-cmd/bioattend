@@ -29,6 +29,12 @@ def load():
             s["fineBalance"] = 0
         if "fineHistory" not in s:
             s["fineHistory"] = []
+        if "paymentHistory" not in s:
+            s["paymentHistory"] = []
+        if "deviceId" not in s:
+            s["deviceId"] = ""
+        if "blocked" not in s:
+            s["blocked"] = False
     return data
 
 def save(data):
@@ -59,6 +65,23 @@ def _add_fine(data, student_id: str, activity_id: str, reason: str, amount: int 
     student["fineHistory"] = hist
     return True
 
+def _add_adjustment(data, student_id: str, activity_id: str, reason: str, amount: int):
+    # amount can be negative (refund) or positive (additional fine)
+    student = next((s for s in data.get("students", []) if s.get("studentId") == student_id), None)
+    if not student:
+        return False
+    student["fineBalance"] = int(student.get("fineBalance") or 0) + int(amount)
+    hist = student.get("fineHistory") or []
+    hist.insert(0, {
+        "id": str(uuid.uuid4()),
+        "amount": int(amount),
+        "reason": reason,
+        "activityId": activity_id,
+        "createdAt": datetime.now().isoformat()
+    })
+    student["fineHistory"] = hist
+    return True
+
 def _ensure_activity_attendance(activity):
     if "attendance" not in activity or not isinstance(activity["attendance"], list):
         activity["attendance"] = []
@@ -66,6 +89,8 @@ def _ensure_activity_attendance(activity):
     for r in activity["attendance"]:
         if "fineApplied" not in r:
             r["fineApplied"] = False
+        if "status" not in r:
+            r["status"] = "present"
 
 def _finalize_activity_absences(data, activity):
     _ensure_activity_attendance(activity)
@@ -139,8 +164,11 @@ def add_student():
     data = load()
     body = request.json
     cred_id = body.get("credentialId", "").strip()
+    device_id = (body.get("deviceId") or "").strip()
     duplicate = next((s for s in data["students"] if s["credentialId"] == cred_id), None)
     flagged = bool(cred_id) and duplicate is not None
+    device_owner = next((s for s in data["students"] if device_id and (s.get("deviceId") == device_id)), None)
+    device_taken = device_owner is not None
     full_name = " ".join(filter(None,[
         body.get("firstName","").strip(),
         body.get("middleName","").strip(),
@@ -164,8 +192,15 @@ def add_student():
         "flagReason": f"Same device as {duplicate['name']} ({duplicate['studentId']})" if flagged else "",
         "registeredAt": datetime.now().isoformat(),
         "fineBalance": 0,
-        "fineHistory": []
+        "fineHistory": [],
+        "deviceId": device_id,
+        "blocked": False
     }
+    if device_taken:
+        # Security policy: one student per device. Additional registrations are blocked from attendance.
+        student["flagged"] = True
+        student["blocked"] = True
+        student["flagReason"] = f"Device already linked to {device_owner.get('name','')} ({device_owner.get('studentId','')})"
     data["students"].append(student)
     save(data)
     return jsonify(student), 201
@@ -392,6 +427,9 @@ def add_activity_attendance(aid):
                 "markedAt": datetime.now().isoformat(),
                 "fineApplied": False
             }
+            if record["status"] == "absent":
+                if _add_fine(data, sid, activity.get("id", ""), f"Absent in {activity.get('name','activity')}"):
+                    record["fineApplied"] = True
             activity["attendance"].append(record)
             added += 1
     save(data)
@@ -414,6 +452,10 @@ def update_activity_attendance(aid, sid):
             if rec["status"] == "absent" and not rec.get("fineApplied"):
                 if _add_fine(data, sid, activity.get("id", ""), f"Absent in {activity.get('name','activity')}"):
                     rec["fineApplied"] = True
+            # If moved away from absent and a fine was applied, refund it.
+            if prev == "absent" and rec["status"] in ("present", "excused") and rec.get("fineApplied"):
+                if _add_adjustment(data, sid, activity.get("id", ""), f"Excused/Corrected in {activity.get('name','activity')}", -ABSENT_FINE_AMOUNT):
+                    rec["fineApplied"] = False
             break
     save(data)
     return jsonify({"ok": True})
@@ -428,6 +470,36 @@ def remove_activity_attendance(aid, sid):
     activity["attendance"] = [r for r in activity["attendance"] if r["studentId"] != sid]
     save(data)
     return jsonify({"ok": True})
+
+# ── student payments ───────────────────────────────────────────
+@app.route("/api/students/<uid>/payments", methods=["POST"])
+@admin_required
+def record_payment(uid):
+    data = load()
+    body = request.json or {}
+    amount = body.get("amount")
+    try:
+        amount = int(amount)
+    except Exception:
+        return jsonify({"error": "Invalid amount"}), 400
+    if amount <= 0:
+        return jsonify({"error": "Amount must be > 0"}), 400
+    student = next((s for s in data.get("students", []) if s.get("id") == uid), None)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+    note = (body.get("note") or "").strip()
+    student["fineBalance"] = int(student.get("fineBalance") or 0) - amount
+    payment = {
+        "id": str(uuid.uuid4()),
+        "amount": amount,
+        "note": note,
+        "createdAt": datetime.now().isoformat()
+    }
+    ph = student.get("paymentHistory") or []
+    ph.insert(0, payment)
+    student["paymentHistory"] = ph
+    save(data)
+    return jsonify({"ok": True, "fineBalance": student.get("fineBalance", 0), "payment": payment})
 
 # ── activities (active / student attendance) ───────────────────
 @app.route("/api/activities/active", methods=["GET"])
@@ -471,8 +543,16 @@ def student_attend_active_activity():
     _ensure_activity_attendance(active)
     body = request.json or {}
     sid = (body.get("studentId") or "").strip()
+    device_id = (body.get("deviceId") or "").strip()
     if not sid:
         return jsonify({"error": "Missing studentId"}), 400
+    student = next((s for s in data.get("students", []) if s.get("studentId") == sid), None)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+    if student.get("blocked"):
+        return jsonify({"error": "This account is blocked on this device. Use the originally registered device/account."}), 403
+    if student.get("deviceId") and device_id and student.get("deviceId") != device_id:
+        return jsonify({"error": "Device mismatch. Use the device used during registration."}), 403
     if next((r for r in active["attendance"] if r.get("studentId") == sid and r.get("status") == "present"), None):
         return jsonify({"ok": True, "already": True})
     # If an absent record was pre-created (on close), flip it to present and remove fine flag?
