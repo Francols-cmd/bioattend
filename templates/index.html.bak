@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioAttend ESSU</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --border: #e5e5e2;
+      --text: #1a1a18;
+      --muted: #888884;
+      --accent: #2a52be;
+      --accent-light: #eef1fb;
+      --danger: #c0392b;
+      --danger-light: #fdf0ee;
+      --warn: #d97706;
+      --warn-light: #fffbeb;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+    }
+
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+    /* NAV */
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; position: sticky; top: 0; z-index: 100; }
+    .nav-brand { font-weight: 600; font-size: 15px; letter-spacing: -0.3px; padding: 14px 0; margin-right: auto; color: var(--text); }
+    .nav-brand span { color: var(--accent); }
+    .nav-tabs { display: flex; gap: 2px; }
+    .nav-tab { background: none; border: none; cursor: pointer; padding: 16px 16px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; transition: all .15s; }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* LAYOUT */
+    .container { max-width: 560px; margin: 0 auto; padding: 28px 16px; }
+    .container.wide { max-width: 960px; }
+
+    /* SECTIONS */
+    section { display: none; }
+    section.active { display: block; }
+
+    /* CARD */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; }
+    .card + .card { margin-top: 16px; }
+    .card-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 20px; }
+    .card-subtitle { font-size: 12px; color: var(--muted); margin-top: -14px; margin-bottom: 20px; }
+
+    /* FORM ELEMENTS */
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 5px; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 14px; background: var(--bg); color: var(--text); transition: border-color .15s, box-shadow .15s; appearance: none; -webkit-appearance: none; }
+    textarea { resize: vertical; min-height: 64px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(42,82,190,.1); background: var(--surface); }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .field-row { display: grid; gap: 12px; }
+    .col-2 { grid-template-columns: 1fr 1fr; }
+    .col-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .col-3-1 { grid-template-columns: 1fr 1fr 1fr .7fr; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #1e3fa3; }
+    .btn-secondary { background: var(--accent-light); color: var(--accent); }
+    .btn-secondary:hover { background: #dce3f7; }
+    .btn-ghost { background: none; border: 1px solid var(--border); color: var(--text); }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-danger { background: var(--danger-light); color: var(--danger); }
+    .btn-danger:hover { background: #f8d7d5; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #138a3d; }
+    .btn-purple { background: var(--purple); color: #fff; }
+    .btn-purple:hover { background: #6d28d9; }
+    .btn-purple-light { background: var(--purple-light); color: var(--purple); }
+    .btn-purple-light:hover { background: #ede9fe; }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+    .btn-icon { padding: 6px 8px; }
+
+    /* BADGES */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-warn { background: var(--warn-light); color: var(--warn); }
+    .badge-success { background: var(--success-light); color: var(--success); }
+    .badge-muted { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+    .badge-purple { background: var(--purple-light); color: var(--purple); }
+    .badge-danger { background: var(--danger-light); color: var(--danger); }
+
+    /* ALERT */
+    .alert { padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-top: 14px; display: none; }
+    .alert.show { display: flex; align-items: flex-start; gap: 10px; }
+    .alert-warn { background: var(--warn-light); color: #92400e; border: 1px solid #fde68a; }
+    .alert-success { background: var(--success-light); color: #166534; border: 1px solid #bbf7d0; }
+    .alert-error { background: var(--danger-light); color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ATTENDANCE HERO */
+    .att-hero { text-align: center; padding: 32px 0; }
+    .att-icon { font-size: 56px; margin-bottom: 20px; display: block; line-height: 1; }
+    .att-msg { margin-top: 16px; font-size: 15px; font-weight: 500; min-height: 24px; }
+
+    /* ADMIN - TABS */
+    .adm-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+    .adm-tab { background: none; border: none; cursor: pointer; padding: 10px 16px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; transition: all .15s; margin-bottom: -1px; white-space: nowrap; }
+    .adm-tab:hover { color: var(--text); }
+    .adm-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .adm-panel { display: none; }
+    .adm-panel.active { display: block; }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); border-bottom: 1px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+
+    /* EDITABLE CELL */
+    .editable { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 3px 6px; font-family: 'DM Mono', monospace; font-size: 12px; transition: all .15s; width: 100%; }
+    .editable:focus { background: var(--bg); border-color: var(--accent); outline: none; }
+    .editable:hover:not(:focus) { border-color: var(--border); }
+
+    /* SECTION TAGS */
+    .tag { display: inline-block; padding: 2px 7px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 11px; color: var(--muted); }
+
+    /* MANAGE LISTS */
+    .opt-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .opt-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+
+    /* DIVIDER */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* LOGIN PAGE */
+    .login-wrap { max-width: 360px; margin: 60px auto; padding: 0 16px; }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo .logo-text { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+    .login-logo .logo-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* SEARCH */
+    .search-wrap { position: relative; margin-bottom: 16px; }
+    .search-wrap input { padding-left: 36px; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+
+    /* STAT CARDS */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .stat-num { font-size: 24px; font-weight: 600; letter-spacing: -1px; }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* EMPTY STATE */
+    .empty { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+
+    /* INLINE SAVE */
+    .save-row { display: flex; gap: 8px; align-items: flex-end; }
+    .save-row .field { flex: 1; margin-bottom: 0; }
+
+    /* ── ACTIVITY CARDS ── */
+    .activity-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+    .activity-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 20px; cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .activity-card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+    .activity-card.selected { border-color: var(--accent); background: var(--accent-light); }
+    .act-info { flex: 1; min-width: 0; }
+    .act-name { font-weight: 600; font-size: 14px; letter-spacing: -0.2px; }
+    .act-meta { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .act-meta span { display: flex; align-items: center; gap: 4px; }
+    .act-count { font-size: 12px; font-weight: 600; background: var(--accent-light); color: var(--accent); padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+    .act-actions { display: flex; gap: 6px; }
+
+    /* ── ACTIVITY DETAIL PANE ── */
+    .act-detail { margin-top: 16px; }
+    .act-detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .act-detail-header h3 { font-size: 15px; font-weight: 600; flex: 1; min-width: 0; }
+
+    /* ── STUDENT CHECKLIST ── */
+    .student-checklist { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .stu-row { display: flex; align-items: center; padding: 10px 14px; gap: 12px; border-bottom: 1px solid var(--border); transition: background .1s; }
+    .stu-row:last-child { border-bottom: none; }
+    .stu-row:hover { background: var(--bg); }
+    .stu-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0; }
+    .stu-row input[type=checkbox]:disabled { opacity: 0.4; cursor: default; }
+    .stu-info { flex: 1; min-width: 0; }
+    .stu-name { font-weight: 500; font-size: 13px; }
+    .stu-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .stu-status { font-size: 11px; font-weight: 500; }
+
+    /* ── MODAL ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: var(--surface); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); padding: 28px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--muted); padding: 2px 6px; border-radius: 6px; }
+    .modal-close:hover { background: var(--bg); }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .col-2, .col-3, .col-3-1 { grid-template-columns: 1fr 1fr; }
+      .col-3-1 > *:last-child { grid-column: span 2; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stats > *:last-child { grid-column: span 2; }
+      .act-detail-header { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 340px) {
+      .col-2, .col-3, .col-3-1 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Bio<span>Attend</span> <span style="font-weight:300;color:var(--muted)">ESSU</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('reg')">Register</button>
+    <button class="nav-tab" onclick="showTab('att')">Attendance</button>
+    <button class="nav-tab" onclick="showTab('adm')">Admin</button>
+  </div>
+</nav>
+
+<!-- ═══ REGISTER ═══ -->
+<section id="sec-reg" class="active">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Student Registration</div>
+
+      <div class="field-row col-3-1" style="margin-bottom:14px">
+        <div class="field" style="margin-bottom:0">
+          <label>First Name</label>
+          <input id="fName" placeholder="e.g. Juan">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Middle Name</label>
+          <input id="mName" placeholder="e.g. dela Cruz">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Last Name</label>
+          <input id="lName" placeholder="e.g. Santos">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Suffix</label>
+          <select id="suffix">
+            <option value="">—</option>
+            <option>Jr.</option><option>Sr.</option>
+            <option>II</option><option>III</option><option>IV</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Student ID</label>
+        <input id="sId" placeholder="e.g. 2024-00001" style="font-family:'DM Mono',monospace">
+      </div>
+
+      <div class="field-row col-3" style="margin-bottom:14px">
+        <div class="field" style="margin-bottom:0">
+          <label>Program / Course</label>
+          <select id="selCourse"><option>Loading…</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Year Level</label>
+          <select id="selYear"><option>Loading…</option></select>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Section</label>
+          <select id="selSec"><option>Loading…</option></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Phone Number <span style="color:var(--muted);text-transform:none;font-size:10px">(used for duplicate detection)</span></label>
+        <input id="phone" placeholder="e.g. 09171234567" maxlength="11" type="tel">
+      </div>
+
+      <div id="dupAlert" class="alert alert-warn">
+        ⚠️ <span>This phone number is already linked to another account. Proceeding will flag this registration.</span>
+      </div>
+
+      <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doRegister()">
+        ☝️ &nbsp;Register Fingerprint
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ATTENDANCE ═══ -->
+<section id="sec-att">
+  <div class="container">
+    <div class="card">
+      <div class="att-hero">
+        <span class="att-icon">☝️</span>
+        <div class="card-title" style="margin-bottom:6px">Scan to Sign-In</div>
+        <p style="color:var(--muted);font-size:13px">Place your registered finger on the sensor</p>
+      </div>
+      <button class="btn btn-success btn-full" onclick="doAttendance()">Verify Identity</button>
+      <p id="attMsg" class="att-msg" style="text-align:center;color:var(--accent)"></p>
+    </div>
+
+    <!-- Active Activity Card -->
+    <div id="activeActivityCard" style="display:none;margin-top:16px">
+      <div class="card" style="border:2px solid var(--success);background:var(--success-light)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:22px">🟢</span>
+          <div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--success);margin-bottom:2px">Ongoing Activity</div>
+            <div id="activeActName" style="font-size:16px;font-weight:600;letter-spacing:-0.3px"></div>
+          </div>
+        </div>
+        <div id="activeActMeta" style="font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;gap:14px;flex-wrap:wrap"></div>
+        <button class="btn btn-success btn-full" style="font-size:14px;padding:12px" onclick="doActivityAttendance()">
+          ✅ &nbsp;Mark My Attendance
+        </button>
+        <p id="actAttMsg" class="att-msg" style="text-align:center;font-size:13px;min-height:20px;margin-top:10px"></p>
+      </div>
+    </div>
+
+    <div id="noActiveCard" style="display:none;margin-top:16px">
+      <div class="card" style="border:1px dashed var(--border);background:var(--bg);text-align:center;padding:20px;color:var(--muted)">
+        <div style="font-size:24px;margin-bottom:6px">📭</div>
+        <div style="font-size:13px">No ongoing activity right now.</div>
+        <div style="font-size:11px;margin-top:4px">Check back when an event is live.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ADMIN ═══ -->
+<section id="sec-adm">
+  <div class="container wide" id="admLoginWrap">
+    <div class="login-wrap">
+      <div class="login-logo">
+        <div class="logo-text">BioAttend <span style="color:var(--accent)">Admin</span></div>
+        <div class="logo-sub">Eastern Samar State University</div>
+      </div>
+      <div class="card">
+        <div class="field">
+          <label>Username</label>
+          <input id="admUser" placeholder="admin">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="admPw" type="password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
+        <div id="loginErr" class="alert alert-error" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container wide" id="admDash" style="display:none">
+    <!-- Stats -->
+    <div class="stats" id="admStats">
+      <div class="stat"><div class="stat-num" id="statStudents">0</div><div class="stat-label">Students</div></div>
+      <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Present Today</div></div>
+      <div class="stat"><div class="stat-num" id="statDups" style="color:var(--warn)">0</div><div class="stat-label">Flagged</div></div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div class="card" style="padding-bottom:0">
+      <div class="adm-tabs">
+        <button class="adm-tab active" onclick="admTab('students')">Students</button>
+        <button class="adm-tab" onclick="admTab('studentList')">Student List</button>
+        <button class="adm-tab" onclick="admTab('activities')">Activities</button>
+        <button class="adm-tab" onclick="admTab('courses')">Programs</button>
+        <button class="adm-tab" onclick="admTab('sections')">Sections & Years</button>
+        <button class="adm-tab" onclick="admTab('logs')">Logs</button>
+      </div>
+
+      <!-- ── STUDENTS PANEL ── -->
+      <div class="adm-panel active" id="apStudents" style="padding-bottom:20px">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input id="studentSearch" placeholder="Search by name or ID…" oninput="renderStudents()">
+        </div>
+        <div class="table-wrap">
+          <table id="studentTable">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Full Name</th>
+                <th>Program</th>
+                <th>Year</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="studentBody">
+              <tr><td colspan="7" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── STUDENT LIST PANEL ── -->
+      <div class="adm-panel" id="apStudentList" style="padding-bottom:20px">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <div class="search-wrap" style="flex:1;min-width:180px;margin-bottom:0">
+            <span class="search-icon">🔍</span>
+            <input id="listSearch" placeholder="Search students…" oninput="renderStudentList()">
+          </div>
+          <select id="listFilterCourse" onchange="renderStudentList()" style="width:auto;flex-shrink:0">
+            <option value="">All Programs</option>
+          </select>
+          <select id="listFilterYear" onchange="renderStudentList()" style="width:auto;flex-shrink:0">
+            <option value="">All Years</option>
+          </select>
+          <select id="listFilterSection" onchange="renderStudentList()" style="width:auto;flex-shrink:0">
+            <option value="">All Sections</option>
+          </select>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px" id="listCount"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Student ID</th>
+                <th>Program</th>
+                <th>Year Level</th>
+                <th>Section</th>
+              </tr>
+            </thead>
+            <tbody id="studentListBody">
+              <tr><td colspan="6" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITIES PANEL ── -->
+      <div class="adm-panel" id="apActivities" style="padding-bottom:20px">
+        <!-- Left/Right split on wide, stacked on narrow -->
+        <div id="actPanelLayout" style="display:flex;gap:20px;align-items:flex-start">
+          <!-- Activity sidebar -->
+          <div style="flex:0 0 320px;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="font-size:13px;font-weight:600;color:var(--text)">Saved Activities</span>
+              <button class="btn btn-purple btn-sm" onclick="openNewActivityModal()">＋ New Activity</button>
+            </div>
+            <div id="activityList" class="activity-list">
+              <div class="empty">No activities yet. Create one to get started.</div>
+            </div>
+          </div>
+          <!-- Activity detail -->
+          <div style="flex:1;min-width:0" id="actDetailWrap">
+            <div class="empty" style="padding:48px 0;color:var(--muted)">
+              <div style="font-size:32px;margin-bottom:10px">📋</div>
+              <div>Select an activity to take or view attendance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROGRAMS PANEL ── -->
+      <div class="adm-panel" id="apCourses" style="padding-bottom:20px">
+        <div class="save-row">
+          <div class="field"><label>New Program / Course</label><input id="newC" placeholder="e.g. BSIT, BSED, BSN…"></div>
+          <button class="btn btn-secondary" onclick="addOpt('courses')">Add</button>
+        </div>
+        <div class="opt-list" id="courseList"></div>
+      </div>
+
+      <!-- ── SECTIONS & YEARS PANEL ── -->
+      <div class="adm-panel" id="apSections" style="padding-bottom:20px">
+        <div class="field-row col-2">
+          <div>
+            <div class="save-row">
+              <div class="field"><label>New Section</label><input id="newS" placeholder="e.g. A, B, Rizal…"></div>
+              <button class="btn btn-secondary" onclick="addOpt('sections')">Add</button>
+            </div>
+            <div class="opt-list" id="sectionList"></div>
+          </div>
+          <div>
+            <div class="save-row">
+              <div class="field"><label>New Year Level</label><input id="newY" placeholder="e.g. 1st Year, 2nd Year…"></div>
+              <button class="btn btn-secondary" onclick="addOpt('yearLevels')">Add</button>
+            </div>
+            <div class="opt-list" id="yearList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOGS PANEL ── -->
+      <div class="adm-panel" id="apLogs" style="padding-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">Attendance Logs</span>
+          <button class="btn btn-danger btn-sm" onclick="doClearLogs()">🗑️ &nbsp;Clear All Logs</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Time</th><th>Student</th><th>ID</th></tr>
+            </thead>
+            <tbody id="logsBody">
+              <tr><td colspan="3" class="empty">No logs yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:right;margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NEW ACTIVITY MODAL ═══ -->
+<div class="modal-backdrop" id="newActModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="newActModalTitle">New Activity</span>
+      <button class="modal-close" onclick="closeModal('newActModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>Activity / Event Name *</label>
+      <input id="actName" placeholder="e.g. General Assembly, Sports Fest…">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input id="actDate" type="date">
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <input id="actLocation" placeholder="e.g. Gymnasium, Covered Court…">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="actDesc" placeholder="Optional notes about this activity…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newActModal')">Cancel</button>
+      <button class="btn btn-purple" onclick="saveActivity()">Save Activity</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EDIT ACTIVITY MODAL ═══ -->
+<div class="modal-backdrop" id="editActModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Edit Activity</span>
+      <button class="modal-close" onclick="closeModal('editActModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>Activity / Event Name *</label>
+      <input id="editActName" placeholder="e.g. General Assembly…">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input id="editActDate" type="date">
+    </div>
+    <div class="field">
+      <label>Location</label>
+      <input id="editActLocation" placeholder="e.g. Gymnasium…">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="editActDesc"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('editActModal')">Cancel</button>
+      <button class="btn btn-purple" id="editActSaveBtn" onclick="">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   BioAttend ESSU — Enhanced with Activities & Student List
+   ═══════════════════════════════════════════════════════════ */
+
+const toBase64   = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const fromBase64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+const FETCH_OPTS   = { credentials: 'same-origin' };
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+const api = {
+  get:    url         => fetch(url, { ...FETCH_OPTS }),
+  post:   (url, body) => fetch(url, { ...FETCH_OPTS, method: 'POST',   headers: JSON_HEADERS, body: JSON.stringify(body) }),
+  put:    (url, body) => fetch(url, { ...FETCH_OPTS, method: 'PUT',    headers: JSON_HEADERS, body: JSON.stringify(body) }),
+  delete: (url, body) => fetch(url, { ...FETCH_OPTS, method: 'DELETE', headers: JSON_HEADERS, body: body ? JSON.stringify(body) : undefined })
+};
+
+async function safeJson(res) {
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return null; }
+}
+
+/* ── NAV TABS ── */
+function showTab(t) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+t).classList.add('active');
+  const idx = ['reg','att','adm'].indexOf(t);
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if (t === 'att') loadActiveActivity();
+}
+
+/* ── POPULATE DROPDOWNS ── */
+async function loadDropdowns() {
+  try {
+    const [rC, rS, rY] = await Promise.all([api.get('/api/courses'), api.get('/api/sections'), api.get('/api/yearlevels')]);
+    const [courses, sections, yearLevels] = await Promise.all([safeJson(rC), safeJson(rS), safeJson(rY)]);
+    const fill = (id, list) => {
+      const e = document.getElementById(id);
+      e.innerHTML = Array.isArray(list) && list.length
+        ? list.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')
+        : `<option value="">— none added yet —</option>`;
+    };
+    fill('selCourse', courses);
+    fill('selYear', yearLevels);
+    fill('selSec', sections);
+  } catch(e) { console.error('loadDropdowns failed', e); }
+}
+
+/* ── DUPLICATE PHONE CHECK ── */
+let _allStudents = [];
+async function initPhoneCheck() {
+  try { const r = await api.get('/api/students'); _allStudents = await safeJson(r) || []; } catch {}
+  document.getElementById('phone').addEventListener('input', function() {
+    const ph = this.value.trim();
+    const dup = ph.length >= 7 && _allStudents.some(s => s.phone === ph);
+    document.getElementById('dupAlert').classList.toggle('show', dup);
+  });
+}
+
+/* ── REGISTER ── */
+async function doRegister() {
+  const fName = document.getElementById('fName').value.trim();
+  const mName = document.getElementById('mName').value.trim();
+  const lName = document.getElementById('lName').value.trim();
+  const suffix = document.getElementById('suffix').value.trim();
+  const sId = document.getElementById('sId').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  if (!fName || !lName || !sId) { alert('Please fill in First Name, Last Name, and Student ID.'); return; }
+  const fullName = [fName, mName, lName, suffix].filter(Boolean).join(' ');
+  try {
+    const chal = new Uint8Array(32); crypto.getRandomValues(chal);
+    const uid = new Uint8Array(16); crypto.getRandomValues(uid);
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: chal,
+      rp: { name: "BioAttend", id: window.location.hostname },
+      user: { id: uid, name: sId, displayName: fullName },
+      pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+      authenticatorSelection: { authenticatorAttachment: "platform" },
+      timeout: 60000
+    }});
+    const payload = { firstName: fName, middleName: mName, lastName: lName, suffix, studentId: sId, phone,
+      course: document.getElementById('selCourse').value,
+      yearLevel: document.getElementById('selYear').value,
+      section: document.getElementById('selSec').value,
+      credentialId: toBase64(cred.rawId) };
+    const res = await api.post('/api/students', payload);
+    const data = await safeJson(res);
+    if (!res.ok) { alert('Error: ' + (data?.error || `HTTP ${res.status}`)); return; }
+    if (data.flagged) { alert(`⚠️ Registered with warning: ${data.flagReason || 'Duplicate device detected.'}`); }
+    else { alert('✅ Student registered successfully!'); }
+    const _r = await api.get('/api/students');
+    _allStudents = await safeJson(_r) || [];
+    ['fName','mName','lName','sId','phone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('suffix').value = '';
+    document.getElementById('dupAlert').classList.remove('show');
+  } catch(e) {
+    alert('Registration failed. Use HTTPS for biometric access.\n\n' + e.message);
+  }
+}
+
+/* ── ATTENDANCE ── */
+async function doAttendance() {
+  let students;
+  try { const r = await api.get('/api/students'); students = await safeJson(r) || []; }
+  catch { alert('Cannot reach server.'); return; }
+  if (!students.length) { alert('No students registered yet.'); return; }
+  const allow = students.map(s => ({ id: fromBase64(s.credentialId), type: 'public-key' }));
+  try {
+    const cred = await navigator.credentials.get({ publicKey: {
+      challenge: new Uint8Array(32), allowCredentials: allow, userVerification: 'required' }});
+    const scanId = toBase64(cred.rawId);
+    const user = students.find(s => s.credentialId === scanId);
+    if (user) {
+      const now = new Date();
+      const res = await api.post('/api/logs', { studentId: user.studentId, name: user.name,
+        course: user.course || '', yearLevel: user.yearLevel || '', section: user.section || '',
+        time: now.toLocaleTimeString(), date: now.toISOString().slice(0, 10) });
+      const body = await safeJson(res);
+      const msg = document.getElementById('attMsg');
+      if (body?.already) {
+        msg.innerHTML = `⚠️ &nbsp;Already signed in today — <strong>${esc(user.name)}</strong>`;
+        msg.style.color = 'var(--warn)';
+      } else {
+        msg.innerHTML = `✅ &nbsp;Attendance recorded — <strong>${esc(user.name)}</strong>`;
+        msg.style.color = 'var(--success)';
+      }
+    } else {
+      const msg = document.getElementById('attMsg');
+      msg.textContent = '⚠️ Credential not matched.';
+      msg.style.color = 'var(--warn)';
+    }
+  } catch(e) { alert('Not recognized or cancelled.'); }
+}
+
+/* ── ADMIN LOGIN ── */
+async function doLogin() {
+  const user = document.getElementById('admUser').value.trim();
+  const pw = document.getElementById('admPw').value;
+  const err = document.getElementById('loginErr');
+  try {
+    const res = await api.post('/api/login', { username: user, password: pw });
+    const body = await safeJson(res);
+    if (res.ok && body?.ok) {
+      err.classList.remove('show');
+      document.getElementById('admLoginWrap').style.display = 'none';
+      document.getElementById('admDash').style.display = 'block';
+      loadAdminData();
+    } else {
+      err.textContent = body?.error || 'Invalid username or password.';
+      err.classList.add('show');
+    }
+  } catch(e) { err.textContent = 'Cannot reach server.'; err.classList.add('show'); }
+}
+
+async function doLogout() {
+  try { await api.post('/api/logout', {}); } catch {}
+  document.getElementById('admLoginWrap').style.display = '';
+  document.getElementById('admDash').style.display = 'none';
+  document.getElementById('admUser').value = '';
+  document.getElementById('admPw').value = '';
+  document.getElementById('loginErr').classList.remove('show');
+}
+
+/* ── ADMIN TABS ── */
+function admTab(t) {
+  document.querySelectorAll('.adm-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.adm-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ap' + t.charAt(0).toUpperCase() + t.slice(1)).classList.add('active');
+  event.target.classList.add('active');
+  if (t === 'studentList') renderStudentList();
+  if (t === 'activities') loadActivities();
+}
+
+/* ── LOAD ADMIN DATA ── */
+async function loadAdminData() {
+  try {
+    const [rSt, rLg, rCo, rSe, rYr] = await Promise.all([
+      api.get('/api/students'), api.get('/api/logs'),
+      api.get('/api/courses'), api.get('/api/sections'), api.get('/api/yearlevels')
+    ]);
+    const [students, logs, courses, sections, yearLevels] = await Promise.all([
+      safeJson(rSt), safeJson(rLg), safeJson(rCo), safeJson(rSe), safeJson(rYr)
+    ]);
+    const today = new Date().toISOString().slice(0, 10);
+    const todayLogs = logs.filter(l => l.date === today);
+    const flagged = students.filter(s => s.flagged);
+    document.getElementById('statStudents').textContent = students.length;
+    document.getElementById('statToday').textContent = todayLogs.length;
+    document.getElementById('statDups').textContent = flagged.length;
+    renderStudents(students);
+    renderOpts('courses', courses, 'courseList');
+    renderOpts('sections', sections, 'sectionList');
+    renderOpts('yearLevels', yearLevels, 'yearList');
+    renderLogs(logs);
+    // Populate filter dropdowns for student list
+    populateListFilters(courses, yearLevels, sections);
+  } catch(e) { console.error('loadAdminData failed', e); }
+}
+
+/* ── STUDENT LIST FILTERS ── */
+function populateListFilters(courses, yearLevels, sections) {
+  const fillSelect = (id, list, label) => {
+    const el = document.getElementById(id);
+    const cur = el.value;
+    el.innerHTML = `<option value="">${label}</option>` +
+      (list || []).map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+    if (cur) el.value = cur;
+  };
+  fillSelect('listFilterCourse', courses, 'All Programs');
+  fillSelect('listFilterYear', yearLevels, 'All Years');
+  fillSelect('listFilterSection', sections, 'All Sections');
+}
+
+/* ── STUDENT LIST RENDER ── */
+function renderStudentList() {
+  const q = (document.getElementById('listSearch')?.value || '').toLowerCase();
+  const fCourse = document.getElementById('listFilterCourse')?.value || '';
+  const fYear = document.getElementById('listFilterYear')?.value || '';
+  const fSec = document.getElementById('listFilterSection')?.value || '';
+  let list = [..._studentsCache];
+  if (q) list = list.filter(s => s.name.toLowerCase().includes(q) || (s.studentId||'').toLowerCase().includes(q));
+  if (fCourse) list = list.filter(s => s.course === fCourse);
+  if (fYear) list = list.filter(s => s.yearLevel === fYear);
+  if (fSec) list = list.filter(s => s.section === fSec);
+  // Sort by name
+  list.sort((a, b) => (a.name||'').localeCompare(b.name||''));
+  const tbody = document.getElementById('studentListBody');
+  document.getElementById('listCount').textContent = `Showing ${list.length} of ${_studentsCache.length} students`;
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">No students match your filters.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map((s, i) => `
+    <tr>
+      <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">${i+1}</td>
+      <td style="font-weight:500">${esc(s.name)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${esc(s.studentId)}</td>
+      <td><span class="tag">${esc(s.course)}</span></td>
+      <td>${esc(s.yearLevel)}</td>
+      <td><span class="tag">${esc(s.section)}</span></td>
+    </tr>
+  `).join('');
+}
+
+/* ── STUDENTS TABLE (ADMIN) ── */
+let _studentsCache = [];
+function renderStudents(students) {
+  if (students) _studentsCache = students;
+  const q = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+  const list = _studentsCache.filter(s => !q || s.name.toLowerCase().includes(q) || s.studentId.toLowerCase().includes(q));
+  const tbody = document.getElementById('studentBody');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty">No students found.</td></tr>`; return; }
+  tbody.innerHTML = list.map(s => `
+    <tr id="srow-${s.id}">
+      <td><input class="editable" value="${esc(s.studentId)}" onchange="patchStudent('${s.id}','studentId',this.value)" title="Edit ID"></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input class="editable" style="min-width:140px" value="${esc(s.name)}" onchange="patchStudent('${s.id}','name',this.value)" title="Edit Name">
+          ${s.flagged ? `<span class="badge badge-warn" title="${esc(s.flagReason||'Duplicate device')}">⚠ Flagged</span>` : ''}
+        </div>
+      </td>
+      <td><span class="tag">${esc(s.course)}</span></td>
+      <td>${esc(s.yearLevel)}</td>
+      <td>${esc(s.section)}</td>
+      <td>${s.flagged ? `<span class="badge badge-warn">Flagged</span>` : `<span class="badge badge-success">OK</span>`}</td>
+      <td><button class="btn btn-danger btn-sm btn-icon" onclick="deleteStudent('${s.id}')" title="Remove">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+async function patchStudent(uid, field, value) {
+  const s = _studentsCache.find(x => x.id === uid);
+  if (!s) return;
+  const body = { firstName: s.firstName||'', middleName: s.middleName||'', lastName: s.lastName||'',
+    suffix: s.suffix||'', studentId: s.studentId, course: s.course||'', yearLevel: s.yearLevel||'', section: s.section||'' };
+  if (field === 'name') { body.firstName = value; body.middleName = ''; body.lastName = ''; body.suffix = ''; }
+  else { body[field] = value; }
+  try {
+    const res = await api.put(`/api/students/${uid}`, body);
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    Object.assign(s, body);
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+
+async function deleteStudent(uid) {
+  if (!confirm('Remove this student? This cannot be undone.')) return;
+  try {
+    const res = await api.delete(`/api/students/${uid}`);
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    _studentsCache = _studentsCache.filter(s => s.id !== uid);
+    renderStudents();
+    document.getElementById('statStudents').textContent = _studentsCache.length;
+    document.getElementById('statDups').textContent = _studentsCache.filter(s => s.flagged).length;
+  } catch(e) { alert('Delete failed: ' + e.message); }
+}
+
+/* ── OPTIONS ── */
+const OPT_ROUTE = { courses: '/api/courses', sections: '/api/sections', yearLevels: '/api/yearlevels' };
+function renderOpts(key, list, listId) {
+  const el = document.getElementById(listId);
+  if (!list || !list.length) { el.innerHTML = `<div class="empty" style="padding:16px">None added yet.</div>`; return; }
+  el.innerHTML = list.map(item => `
+    <div class="opt-item">
+      <span>${esc(item)}</span>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="removeOpt('${key}','${esc(item)}')">✕</button>
+    </div>
+  `).join('');
+}
+async function addOpt(type) {
+  const inputId = { courses:'newC', sections:'newS', yearLevels:'newY' }[type];
+  const listId = { courses:'courseList', sections:'sectionList', yearLevels:'yearList' }[type];
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) return;
+  try {
+    const res = await api.post(OPT_ROUTE[type], { name: val });
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    const list = await safeJson(res);
+    document.getElementById(inputId).value = '';
+    renderOpts(type, list, listId);
+    loadDropdowns();
+  } catch(e) { alert('Failed to add: ' + e.message); }
+}
+async function removeOpt(type, name) {
+  const listId = { courses:'courseList', sections:'sectionList', yearLevels:'yearList' }[type];
+  try {
+    const res = await api.delete(OPT_ROUTE[type], { name });
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || `HTTP ${res.status}`); }
+    const list = await safeJson(res);
+    renderOpts(type, Array.isArray(list) ? list : [], listId);
+    loadDropdowns();
+  } catch(e) { alert('Failed to remove: ' + e.message); }
+}
+
+/* ── LOGS ── */
+function renderLogs(logs) {
+  const tbody = document.getElementById('logsBody');
+  if (!logs || !logs.length) { tbody.innerHTML = `<tr><td colspan="3" class="empty">No attendance logs yet.</td></tr>`; return; }
+  tbody.innerHTML = logs.map(l => `
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${esc(l.date)} ${esc(l.time)}</td>
+      <td>${esc(l.name)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${esc(l.studentId)}</td>
+    </tr>
+  `).join('');
+}
+
+async function doClearLogs() {
+  if (!confirm('Clear ALL attendance logs? This cannot be undone.')) return;
+  try {
+    const res = await api.delete('/api/logs');
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    renderLogs([]);
+    document.getElementById('statToday').textContent = '0';
+    alert('✅ All logs cleared.');
+  } catch(e) { alert('Failed to clear logs: ' + e.message); }
+}
+
+/* ════════════════════════════════════════
+   ACTIVITIES FEATURE
+   ════════════════════════════════════════ */
+
+let _activitiesCache = [];
+let _selectedActivityId = null;
+
+async function loadActivities() {
+  try {
+    const r = await api.get('/api/activities');
+    const acts = await safeJson(r) || [];
+    _activitiesCache = acts;
+    renderActivityList();
+    if (_selectedActivityId) {
+      const still = acts.find(a => a.id === _selectedActivityId);
+      if (still) renderActivityDetail(still);
+    }
+  } catch(e) { console.error('loadActivities failed', e); }
+}
+
+function renderActivityList() {
+  const el = document.getElementById('activityList');
+  if (!_activitiesCache.length) {
+    el.innerHTML = `<div class="empty" style="padding:20px 0;font-size:13px">No activities yet.<br>Click <strong>＋ New Activity</strong> to create one.</div>`;
+    return;
+  }
+  el.innerHTML = _activitiesCache.map(a => {
+    const cnt = (a.attendance || []).length;
+    const isSelected = a.id === _selectedActivityId;
+    const isActive = !!a.active;
+    const activeBorder = isActive ? 'border-color:var(--success);box-shadow:0 0 0 2px rgba(22,163,74,.15)' : '';
+    return `
+      <div class="activity-card${isSelected ? ' selected' : ''}" onclick="selectActivity('${a.id}')" style="${activeBorder}">
+        <div class="act-info">
+          <div style="display:flex;align-items:center;gap:6px">
+            ${isActive ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0"></span>` : ''}
+            <div class="act-name">${esc(a.name)}</div>
+          </div>
+          <div class="act-meta">
+            <span>📅 ${esc(a.date || '—')}</span>
+            ${a.location ? `<span>📍 ${esc(a.location)}</span>` : ''}
+            ${isActive ? `<span style="color:var(--success);font-weight:600">● LIVE</span>` : `<span style="color:var(--muted)">● Closed</span>`}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="act-count">${cnt} present</div>
+          <div class="act-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-sm btn-icon ${isActive ? 'btn-success' : 'btn-ghost'}" 
+              onclick="toggleActivityActive('${a.id}')" 
+              title="${isActive ? 'Mark as Done (closes attendance)' : 'Set as Active (opens attendance)'}"
+              style="font-size:11px;padding:5px 8px;">
+              ${isActive ? '✅ Live' : '☐ Done'}
+            </button>
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="openEditActivityModal('${a.id}')" title="Edit">✏️</button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteActivity('${a.id}')" title="Delete">✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectActivity(id) {
+  _selectedActivityId = id;
+  renderActivityList(); // re-render to show selected state
+  const act = _activitiesCache.find(a => a.id === id);
+  if (act) renderActivityDetail(act);
+}
+
+function renderActivityDetail(act) {
+  const wrap = document.getElementById('actDetailWrap');
+  const attendance = act.attendance || [];
+  const presentIds = new Set(attendance.map(r => r.studentId));
+
+  // Build student checklist
+  const students = [..._studentsCache].sort((a, b) => (a.name||'').localeCompare(b.name||''));
+
+  let checklistHtml = '';
+  if (!students.length) {
+    checklistHtml = `<div class="empty">No students registered yet.</div>`;
+  } else {
+    checklistHtml = `<div class="student-checklist">` +
+      students.map(s => {
+        const rec = attendance.find(r => r.studentId === s.studentId);
+        const isPresent = !!rec;
+        const statusColor = isPresent ? 'var(--success)' : 'var(--muted)';
+        return `
+          <div class="stu-row">
+            <input type="checkbox" id="chk-${s.id}" ${isPresent ? 'checked' : ''}
+              onchange="toggleActivityAttendance('${act.id}', '${esc(s.studentId)}', '${esc(s.name)}', '${esc(s.course||'')}', '${esc(s.yearLevel||'')}', '${esc(s.section||'')}', this.checked)">
+            <div class="stu-info">
+              <div class="stu-name">${esc(s.name)}</div>
+              <div class="stu-sub">${esc(s.course)} · ${esc(s.yearLevel)} · Sec ${esc(s.section)}</div>
+            </div>
+            <div class="stu-status" style="color:${statusColor}">
+              ${isPresent ? `✓ Present<br><span style="font-size:10px;color:var(--muted)">${esc(rec.time||'')}</span>` : '—'}
+            </div>
+          </div>
+        `;
+      }).join('') + `</div>`;
+  }
+
+  const presentCount = attendance.length;
+  const totalCount = students.length;
+
+  wrap.innerHTML = `
+    <div class="act-detail">
+      <div class="act-detail-header">
+        <div>
+          <h3>📋 ${esc(act.name)}</h3>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">
+            ${act.date ? `📅 ${act.date}` : ''} ${act.location ? `&nbsp;·&nbsp; 📍 ${esc(act.location)}` : ''} ${act.description ? `&nbsp;·&nbsp; ${esc(act.description)}` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="badge badge-success" style="font-size:12px">✓ ${presentCount} / ${totalCount} Present</span>
+          <button class="btn btn-secondary btn-sm" onclick="markAllPresent('${act.id}')">Mark All Present</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAllAttendance('${act.id}')">Clear All</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Check students present for this activity:</div>
+      ${checklistHtml}
+    </div>
+  `;
+}
+
+async function toggleActivityAttendance(actId, studentId, name, course, yearLevel, section, checked) {
+  try {
+    if (checked) {
+      const now = new Date();
+      const res = await api.post(`/api/activities/${actId}/attendance`, {
+        studentId, name, course, yearLevel, section,
+        status: 'present',
+        time: now.toLocaleTimeString()
+      });
+      if (!res.ok) throw new Error('Failed to mark attendance');
+      const data = await safeJson(res);
+      // Update local cache
+      const act = _activitiesCache.find(a => a.id === actId);
+      if (act) { act.attendance = data.attendance; renderActivityList(); }
+    } else {
+      const res = await api.delete(`/api/activities/${actId}/attendance/${encodeURIComponent(studentId)}`);
+      if (!res.ok) throw new Error('Failed to remove attendance');
+      const act = _activitiesCache.find(a => a.id === actId);
+      if (act) { act.attendance = (act.attendance||[]).filter(r => r.studentId !== studentId); renderActivityList(); }
+    }
+    // Refresh count in detail header without full re-render (avoid scroll jump)
+    const act = _activitiesCache.find(a => a.id === actId);
+    if (act) {
+      const badge = document.querySelector('.act-detail .badge-success');
+      if (badge) badge.textContent = `✓ ${act.attendance.length} / ${_studentsCache.length} Present`;
+    }
+  } catch(e) {
+    alert('Error updating attendance: ' + e.message);
+    // Revert checkbox
+    const act = _activitiesCache.find(a => a.id === actId);
+    if (act) renderActivityDetail(act);
+  }
+}
+
+async function markAllPresent(actId) {
+  const act = _activitiesCache.find(a => a.id === actId);
+  if (!act) return;
+  const presentIds = new Set((act.attendance||[]).map(r => r.studentId));
+  const toAdd = _studentsCache.filter(s => !presentIds.has(s.studentId));
+  if (!toAdd.length) { alert('All students are already marked present.'); return; }
+  const now = new Date();
+  const entries = toAdd.map(s => ({
+    studentId: s.studentId, name: s.name, course: s.course||'',
+    yearLevel: s.yearLevel||'', section: s.section||'',
+    status: 'present', time: now.toLocaleTimeString()
+  }));
+  try {
+    const res = await api.post(`/api/activities/${actId}/attendance`, entries);
+    if (!res.ok) throw new Error('Failed');
+    const data = await safeJson(res);
+    act.attendance = data.attendance;
+    renderActivityList();
+    renderActivityDetail(act);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function clearAllAttendance(actId) {
+  if (!confirm('Clear all attendance for this activity?')) return;
+  const act = _activitiesCache.find(a => a.id === actId);
+  if (!act) return;
+  // Remove one by one via backend, or just clear locally by deleting individually
+  try {
+    const ids = (act.attendance||[]).map(r => r.studentId);
+    await Promise.all(ids.map(sid =>
+      api.delete(`/api/activities/${actId}/attendance/${encodeURIComponent(sid)}`)
+    ));
+    act.attendance = [];
+    renderActivityList();
+    renderActivityDetail(act);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+/* ── ACTIVITY MODAL (Create) ── */
+function openNewActivityModal() {
+  document.getElementById('actName').value = '';
+  document.getElementById('actDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('actLocation').value = '';
+  document.getElementById('actDesc').value = '';
+  openModal('newActModal');
+}
+
+async function saveActivity() {
+  const name = document.getElementById('actName').value.trim();
+  if (!name) { alert('Activity name is required.'); return; }
+  try {
+    const res = await api.post('/api/activities', {
+      name,
+      date: document.getElementById('actDate').value,
+      location: document.getElementById('actLocation').value.trim(),
+      description: document.getElementById('actDesc').value.trim()
+    });
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    const act = await safeJson(res);
+    _activitiesCache.unshift(act);
+    renderActivityList();
+    closeModal('newActModal');
+    // Auto-select the new activity
+    selectActivity(act.id);
+  } catch(e) { alert('Failed to save activity: ' + e.message); }
+}
+
+/* ── ACTIVITY MODAL (Edit) ── */
+function openEditActivityModal(id) {
+  const act = _activitiesCache.find(a => a.id === id);
+  if (!act) return;
+  document.getElementById('editActName').value = act.name || '';
+  document.getElementById('editActDate').value = act.date || '';
+  document.getElementById('editActLocation').value = act.location || '';
+  document.getElementById('editActDesc').value = act.description || '';
+  document.getElementById('editActSaveBtn').onclick = () => updateActivity(id);
+  openModal('editActModal');
+}
+
+async function updateActivity(id) {
+  const name = document.getElementById('editActName').value.trim();
+  if (!name) { alert('Activity name is required.'); return; }
+  try {
+    const res = await api.put(`/api/activities/${id}`, {
+      name,
+      date: document.getElementById('editActDate').value,
+      location: document.getElementById('editActLocation').value.trim(),
+      description: document.getElementById('editActDesc').value.trim()
+    });
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    const act = _activitiesCache.find(a => a.id === id);
+    if (act) {
+      act.name = name;
+      act.date = document.getElementById('editActDate').value;
+      act.location = document.getElementById('editActLocation').value.trim();
+      act.description = document.getElementById('editActDesc').value.trim();
+    }
+    renderActivityList();
+    if (_selectedActivityId === id && act) renderActivityDetail(act);
+    closeModal('editActModal');
+  } catch(e) { alert('Failed to update: ' + e.message); }
+}
+
+async function deleteActivity(id) {
+  if (!confirm('Delete this activity and all its attendance records? This cannot be undone.')) return;
+  try {
+    const res = await api.delete(`/api/activities/${id}`);
+    if (!res.ok) throw new Error('Failed to delete');
+    _activitiesCache = _activitiesCache.filter(a => a.id !== id);
+    if (_selectedActivityId === id) {
+      _selectedActivityId = null;
+      document.getElementById('actDetailWrap').innerHTML = `
+        <div class="empty" style="padding:48px 0;color:var(--muted)">
+          <div style="font-size:32px;margin-bottom:10px">📋</div>
+          <div>Select an activity to take or view attendance</div>
+        </div>`;
+    }
+    renderActivityList();
+  } catch(e) { alert('Failed to delete: ' + e.message); }
+}
+
+/* ── TOGGLE ACTIVITY ACTIVE (Admin) ── */
+async function toggleActivityActive(id) {
+  try {
+    const res = await api.post(`/api/activities/${id}/toggle-active`, {});
+    if (!res.ok) { const e = await safeJson(res); throw new Error(e?.error || res.status); }
+    const data = await safeJson(res);
+    // Update local cache
+    _activitiesCache.forEach(a => { a.active = (a.id === id) ? data.active : false; });
+    renderActivityList();
+    const act = _activitiesCache.find(a => a.id === id);
+    if (_selectedActivityId === id && act) renderActivityDetail(act);
+  } catch(e) { alert('Failed to toggle activity: ' + e.message); }
+}
+
+/* ── LOAD ACTIVE ACTIVITY (Student Side) ── */
+let _activeActivityCache = null;
+async function loadActiveActivity() {
+  try {
+    const res = await api.get('/api/activities/active');
+    const act = await safeJson(res);
+    _activeActivityCache = act;
+    const card = document.getElementById('activeActivityCard');
+    const noCard = document.getElementById('noActiveCard');
+    if (act && act.id) {
+      document.getElementById('activeActName').textContent = act.name;
+      const meta = [];
+      if (act.date) meta.push(`📅 ${act.date}`);
+      if (act.location) meta.push(`📍 ${act.location}`);
+      if (act.description) meta.push(act.description);
+      document.getElementById('activeActMeta').textContent = meta.join('  ·  ');
+      document.getElementById('actAttMsg').textContent = '';
+      card.style.display = 'block';
+      noCard.style.display = 'none';
+    } else {
+      card.style.display = 'none';
+      noCard.style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('activeActivityCard').style.display = 'none';
+    document.getElementById('noActiveCard').style.display = 'block';
+  }
+}
+
+/* ── STUDENT MARK ACTIVITY ATTENDANCE ── */
+async function doActivityAttendance() {
+  if (!_activeActivityCache) return;
+  let students;
+  try { const r = await api.get('/api/students'); students = await safeJson(r) || []; }
+  catch { alert('Cannot reach server.'); return; }
+  if (!students.length) { alert('No students registered yet.'); return; }
+  const allow = students.map(s => ({ id: fromBase64(s.credentialId), type: 'public-key' }));
+  const msg = document.getElementById('actAttMsg');
+  try {
+    const cred = await navigator.credentials.get({ publicKey: {
+      challenge: new Uint8Array(32), allowCredentials: allow, userVerification: 'required' }});
+    const scanId = toBase64(cred.rawId);
+    const user = students.find(s => s.credentialId === scanId);
+    if (!user) {
+      msg.textContent = '⚠️ Credential not matched.';
+      msg.style.color = 'var(--warn)';
+      return;
+    }
+    const res = await api.post('/api/activities/active/attend', {
+      studentId: user.studentId, name: user.name,
+      course: user.course || '', yearLevel: user.yearLevel || '', section: user.section || ''
+    });
+    const body = await safeJson(res);
+    if (!res.ok) { msg.textContent = '❌ ' + (body?.error || 'Failed'); msg.style.color = 'var(--danger)'; return; }
+    if (body?.already) {
+      msg.innerHTML = `⚠️ Already marked — <strong>${esc(user.name)}</strong>`;
+      msg.style.color = 'var(--warn)';
+    } else {
+      msg.innerHTML = `✅ Attendance recorded — <strong>${esc(user.name)}</strong>`;
+      msg.style.color = 'var(--success)';
+    }
+  } catch(e) { msg.textContent = 'Not recognized or cancelled.'; msg.style.color = 'var(--warn)'; }
+}
+
+/* ── MODAL HELPERS ── */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Close on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(b => {
+  b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); });
+});
+
+/* ── HELPERS ── */
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── INIT ── */
+window.onload = async () => {
+  await loadDropdowns();
+  await initPhoneCheck();
+  try {
+    const _meRes = await api.get('/api/me');
+    const me = await safeJson(_meRes);
+    if (me && me.admin) {
+      document.getElementById('admLoginWrap').style.display = 'none';
+      document.getElementById('admDash').style.display = 'block';
+      loadAdminData();
+    }
+  } catch {}
+};
+</script>
+</body>
+</html>
